@@ -1,11 +1,14 @@
 var express = require('express');
 var router = express.Router();
 const app = express();
-const cors = require('cors');
-app.use(cors({
-  origin: "http://localhost:4200",
-}));
+// const cors = require('cors');
+// app.use( cors({
+//     origin: 'http://localhost:4200'
+// }));
 
+
+
+// Your routes here
 /* Connect to Database */
 const dbConnection = require('../dbconnection');
 
@@ -23,16 +26,14 @@ router.get('/todo', (req, res) => {
         if (err) {
           console.log(err,"there is an error");
         }
-        else {
+        else {  
           res.send(result)
         }
         connection.end()
       })
     })
     .catch((err) => {
-      console.log(error)
       res.send('not connected')
-
     })
 
 }
