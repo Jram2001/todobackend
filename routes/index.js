@@ -21,13 +21,21 @@ router.get('/', function(req, res, next) {
 router.get('/todo', (req, res) => {
   dbConnection.con()
     .then((connection) => {
-      const query = 'select * from taskdetail';
+      const query = 'select * from taskdetails';
+      const query2 = 'select * from tagnames'
       connection.query(query, (err, result) => {
         if (err) {
-          console.log(err,"there is an error");
+          console.log(err,"there is an error in query 1");
         }
         else {  
-          res.send(result)
+            connection.query(query2, (err, result2) => {
+            if (err) {
+              console.log(err,"there is an error in query 2");
+            }
+            else{
+              res.send({'taskDeatils':result,'TagDetail':result2})
+            }
+          })
         }
         connection.end()
       })
