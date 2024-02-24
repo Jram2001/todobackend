@@ -4,8 +4,8 @@ function con() {
     const connection = mysql.createConnection({
         host: 'localhost',
         user: 'root',
-        password: '1001',
-        database: 'todo'
+        password: 'root',
+        database: 'testdb'
     });
     return new Promise((resolve, reject) => {
         connection.connect((err) => {
