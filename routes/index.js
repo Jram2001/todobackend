@@ -22,17 +22,14 @@ router.get('/delete/:id', (req, res) => {
   const id = parseInt(req.params.id);
   dbConnection.con()
     .then((connection) => {
-      // Corrected SQL queries and separated them into two queries
-      const query1 = `DELETE FROM taskdetails WHERE id = ${id}`;
-      // Executing first delete query
+      const query1 = `UPDATE taskdetails SET deleted = 1 WHERE id = ${id}`;
       connection.query(query1, (err, result1) => {
         if (err) {
           res.send('Error occurred while deleting taskdetails with id: ' + id);
         } else {
-          res.send('Deleted taskdetails with id: ' + id + ' and its related records.');
+          res.send('Task with id ' + id + ' has been deleted');
         }
-        // Ending connection
-        connection.end();
+        connection.end(); // Ending connection inside callback
       });
     })
     .catch((err) => {
