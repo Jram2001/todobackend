@@ -5,9 +5,6 @@ const app = express();
 // app.use( cors({
 //     origin: 'http://localhost:4200'
 // }));
-
-
-
 // Your routes here
 /* Connect to Database */
 const dbConnection = require('../dbconnection');
@@ -27,7 +24,7 @@ router.get('/delete/:id', (req, res) => {
         if (err) {
           res.send('Error occurred while deleting taskdetails with id: ' + id);
         } else {
-          res.send('Task with id ' + id + ' has been deleted');
+          res.send(result1);
         }
         connection.end(); // Ending connection inside callback
       });
@@ -41,21 +38,14 @@ router.get('/delete/:id', (req, res) => {
 router.get('/todo', (req, res) => {
   dbConnection.con()
     .then((connection) => {
-      const query = 'select * from taskdetails';
+      const query = 'SELECT taskdetails.id, taskdetails.TaskName, taskdetails.AsigneeName, taskdetails.Descriptions, taskdetails.Repetable, taskdetails.CreatedOn, taskdetails.deleted, GROUP_CONCAT(tagnames.TagId) AS TagIds, GROUP_CONCAT(tagnames.Tag) AS Tags FROM taskdetails LEFT JOIN tagnames ON taskdetails.id = tagnames.TaskId GROUP BY taskdetails.id, taskdetails.TaskName, taskdetails.AsigneeName, taskdetails.Descriptions, taskdetails.Repetable, taskdetails.CreatedOn, taskdetails.deleted';
       const query2 = 'select * from tagnames'
       connection.query(query, (err, result) => {
         if (err) {
           console.log(err, "there is an error in query 1");
         }
         else {
-          connection.query(query2, (err, result2) => {
-            if (err) {
-              console.log(err, "there is an error in query 2");
-            }
-            else {
-              res.send({ 'taskDeatils': result, 'TagDetail': result2 })
-            }
-          })
+              res.send(result)
         }
         connection.end()
       })
