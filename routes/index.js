@@ -45,7 +45,7 @@ router.get('/todo', (req, res) => {
           console.log(err, "there is an error in query 1");
         }
         else {
-              res.send(result)
+          res.send(result)
         }
         connection.end()
       })
@@ -54,5 +54,39 @@ router.get('/todo', (req, res) => {
       res.send('not connected to backend')
     })
 });
+
+router.post('/create', (req, res) => {
+  dbConnection.con()
+    .then((connection) => {
+      const TaskDetail = req.body[0];
+      const TagDetails = req.body[1];
+      const CreateQuery = `INSERT INTO taskdetails (id,TaskName,AsigneeName,descriptions,Repetable,CreatedOn,deleted) values (${TaskDetail.id},'${TaskDetail.TaskName}','${TaskDetail.AsigneName}','${TaskDetail.Description}',${TaskDetail.Repetable},'${TaskDetail.CreatedOn}',0) `;
+      connection.query(CreateQuery, (err, result) => {
+        const id = TaskDetail.id;
+        if (err) {
+          console.log(err, "there is an error in query 1", TaskDetail.CreatedOn);
+        }
+        else {
+          TagDetails.map(data => {
+            const TagQuerry = `INSERT INTO tagnames (Tag,TaskId) values ('${data.Tag}',${id})`
+            connection.query(TagQuerry, (err, result1) => {
+              if (err) {
+                console.log(err, "there is an error in query 1");
+              }
+              else {
+                console.log(result1)
+              }
+            })
+            res.send(result)
+          })
+        }
+      })
+      console.log(req.body);
+    })
+    .catch((err) => {
+      res.send('not connected to backend')
+    })
+});
+
 
 module.exports = router;
