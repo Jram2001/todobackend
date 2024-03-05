@@ -74,11 +74,11 @@ router.post('/create', (req, res) => {
                 console.log(err, "there is an error in query 1");
               }
               else {
-                console.log(result1)
+                console.log('result1')
               }
             })
-            res.send(result)
           })
+          res.send(result)
         }
       })
       console.log(req.body);
@@ -88,5 +88,34 @@ router.post('/create', (req, res) => {
     })
 });
 
+router.post('/update', (req, res) => {
+    dbConnection.con()
+    .then((connection) => {
+      const TaskDetail = req.body[0];
+      const TagDetails = req.body[1];
+      const TagId = req.body[2];
+      const CreateQuery = `UPDATE taskdetails SET TaskName = '${TaskDetail.TaskName}', AsigneeName = '${TaskDetail.AsigneName}', descriptions = '${TaskDetail.Description}', Repetable = ${TaskDetail.Repetable}, CreatedOn = '${TaskDetail.CreatedOn}' WHERE id = ${TaskDetail.id};`
+      connection.query(CreateQuery, (err, result) => {
+      const id = TaskDetail.id;
+        if (err) {
+          console.log(err, "there is an error in query 1", TaskDetail.CreatedOn);
+        }
+        else {
+          TagDetails.map((data,index) => {
+            const TagQuerry = `UPDATE todo.tagnames SET Tag = ${data} WHERE (TagId = ${TagId[index]}))`
+            connection.query(TagQuerry, (err, result1) => {
+              if (err) {
+                console.log(err, "there is an error in query 1");
+              }
+              else {
+                console.log('result1')
+              }
+            })
+          })
+          res.send(result)
+        }
+      })
 
+    })
+})
 module.exports = router;
