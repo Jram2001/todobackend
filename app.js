@@ -11,9 +11,7 @@ var app = express();
 
 const cors = require('cors'); // Assuming you have cors installed
 
-app.use(cors({
-  origin: 'http://localhost:4200'
-}));
+app.use(cors());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

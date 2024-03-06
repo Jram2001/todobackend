@@ -102,7 +102,8 @@ router.post('/update', (req, res) => {
         }
         else {
           TagDetails.map((data,index) => {
-            const TagQuerry = `UPDATE todo.tagnames SET Tag = ${data} WHERE (TagId = ${TagId[index]}))`
+            console.log(data,data.Tag)
+            const TagQuerry = `UPDATE tagnames SET Tag = '${data.Tag}' WHERE (TagId = ${TagId[index]})`
             connection.query(TagQuerry, (err, result1) => {
               if (err) {
                 console.log(err, "there is an error in query 1");
