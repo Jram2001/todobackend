@@ -1,11 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const app = express();
-// const cors = require('cors');
-// app.use( cors({
-//     origin: 'http://localhost:4200'
-// }));
-// Your routes here
+
 /* Connect to Database */
 const dbConnection = require('../dbconnection');
 
@@ -119,4 +115,27 @@ router.post('/update', (req, res) => {
 
     })
 })
+
+
+router.post('/validate', (req, res) => {
+  dbConnection.con()
+    .then((connection) => {
+      const userDataQuery = 'SELECT * FROM userdetails';
+      connection.query(userDataQuery, (err, result) => {
+        if (err) {
+          res.status(500).send('Error executing SQL query');
+        } else {
+          // res.send(res,req)
+          res.status(200).json(result); // Send the result as JSON response
+        }
+        connection.end(); // Release the database connection
+      });
+    })
+    .catch((err) => {
+      console.error('Error establishing database connection:', err);
+      res.status(500).send('Error establishing database connection');
+    });
+});
+
+
 module.exports = router;
