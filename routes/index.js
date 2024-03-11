@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const app = express();
+const bcrypt = require('bcrypt');
 
 /* Connect to Database */
 const dbConnection = require('../dbconnection');
@@ -9,6 +10,7 @@ const dbConnection = require('../dbconnection');
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
+
 
 /* Deliver Task Data to Frontend */
 router.get('/delete/:id', (req, res) => {
@@ -98,7 +100,6 @@ router.post('/update', (req, res) => {
         }
         else {
           TagDetails.map((data,index) => {
-            console.log(data,data.Tag)
             const TagQuerry = `UPDATE tagnames SET Tag = '${data.Tag}' WHERE (TagId = ${TagId[index]})`
             connection.query(TagQuerry, (err, result1) => {
               if (err) {
@@ -117,6 +118,47 @@ router.post('/update', (req, res) => {
 })
 
 
+router.post('/CreateUser', (req, res) => {
+  dbConnection.con()
+    .then((connection) => {
+      const UserName = req.body.username;
+      bcrypt.hash(req.body.password , Math.ceil( Math.random() * 10),(err, hash) => {
+        const CreateQuery = `INSERT INTO userdetails (username,pass) values ('${UserName}','${hash}') `;
+        connection.query(CreateQuery, (err, result) => {
+        if (err) {
+          console.log(err, "there is an error in query 1");
+        }
+        else {
+          res.send(result)
+        }
+      })        
+      });
+    })
+    .catch((err) => {
+      res.send('not connected to backend')
+    })
+});
+
+router.post('/CreateMyUser', (req, res) => {
+  dbConnection.con()
+    .then(async(connection) => {
+      const UserName = req.body.UserName;
+      const hash = await bcrypt.hash(req.body.Password , Math.ceil( Math.random() * 10));
+      const CreateQuery = `INSERT INTO userdetails (username,pass) values ('${UserName}','${hash}') `;
+      connection.query(CreateQuery, (err, result) => {
+        if (err) {
+          console.log(err, "there is an error in query 1");
+        }
+        else {
+          res.send(result)
+        }
+      })        
+    })
+    .catch((err) => {
+      res.send('not connected to backend')
+    })
+});
+
 router.post('/validate', (req, res) => {
   dbConnection.con()
     .then((connection) => {
@@ -125,9 +167,17 @@ router.post('/validate', (req, res) => {
         if (err) {
           res.status(500).send('Error executing SQL query');
         } else {
-          // res.send(res,req)
-          res.status(200).json(result); // Send the result as JSON response
-        }
+          const UserData = result.find((data) => { return req.body.username == data.username });
+          req.body.username , bcrypt.hash(req.body.pass , Math.ceil( Math.random() * 10) , (err, hash) => {
+            console.log(hash)
+          }) 
+          if(UserData && bcrypt.compare(UserData.pass,UserData.pass)){
+            res.send(result);
+          }
+          else{
+            return res.status(401).json({ error: 'Username or password is incorrect'});
+          }
+            }
         connection.end(); // Release the database connection
       });
     })
