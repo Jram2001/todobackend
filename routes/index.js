@@ -142,6 +142,7 @@ router.post('/CreateUser', (req, res) => {
 router.post('/CreateMyUser', (req, res) => {
   dbConnection.con()
     .then(async(connection) => {
+      console.log('hello',req.body)
       const UserName = req.body.UserName;
       const hash = await bcrypt.hash(req.body.Password , Math.ceil( Math.random() * 10));
       const CreateQuery = `INSERT INTO userdetails (username,pass) values ('${UserName}','${hash}') `;
@@ -167,22 +168,24 @@ router.post('/validate', (req, res) => {
         if (err) {
           res.status(500).send('Error executing SQL query');
         } else {
-          const UserData = result.find((data) => { return req.body.username == data.username });
-          req.body.username , bcrypt.hash(req.body.pass , Math.ceil( Math.random() * 10) , (err, hash) => {
-            console.log(hash)
+          const UserData = result.find((data) => { return req.body.UserName === data.username });
+
+          bcrypt.hash(req.body.password , Math.ceil( Math.random() * 10) , async (err, hash) => {
+            UserData && bcrypt.compare(req.body.password , hash , (err,match) =>{
+              if(err){
+                console.log(err)
+                res.status(401).json({ error: 'Username or password is incorrect'});
+              }
+              else{
+                res.send(result);
+              }
+          })
           }) 
-          if(UserData && bcrypt.compare(UserData.pass,UserData.pass)){
-            res.send(result);
           }
-          else{
-            return res.status(401).json({ error: 'Username or password is incorrect'});
-          }
-            }
         connection.end(); // Release the database connection
       });
     })
     .catch((err) => {
-      console.error('Error establishing database connection:', err);
       res.status(500).send('Error establishing database connection');
     });
 });
