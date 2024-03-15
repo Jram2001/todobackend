@@ -1,9 +1,11 @@
+require('dotenv').config();
 var express = require('express');
 var router = express.Router();
 const app = express();
 const bcrypt = require('bcrypt');
-
+const jwt = require('jsonwebtoken') 
 /* Connect to Database */
+app.use(express.json())
 const dbConnection = require('../dbconnection');
 
 /* GET home page. */
@@ -169,7 +171,6 @@ router.post('/validate', (req, res) => {
           res.status(500).send('Error executing SQL query');
         } else {
           const UserData = result.find((data) => { return req.body.UserName === data.username });
-
           bcrypt.hash(req.body.password , Math.ceil( Math.random() * 10) , async (err, hash) => {
             UserData && bcrypt.compare(req.body.password , hash , (err,match) =>{
               if(err){
@@ -177,7 +178,8 @@ router.post('/validate', (req, res) => {
                 res.status(401).json({ error: 'Username or password is incorrect'});
               }
               else{
-                res.send(result);
+                const accessToken = jwt.sign(req.body.UserName,process.env.ACCESS_TOKEN )  
+                res.json({ accessToken : accessToken });
               }
           })
           }) 
