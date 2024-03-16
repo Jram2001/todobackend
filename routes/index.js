@@ -14,6 +14,22 @@ router.get('/', function (req, res, next) {
 });
 
 
+function verifyJWT(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1]; // Extract token from Authorization header
+  console.log(token)
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized: No token provided' });
+  }
+  try {
+    const decoded = jwt.verify( token , process.env.ACCESS_TOKEN ); // Replace with your secret key
+    req.user = decoded; // Store decoded user info in req.user
+    next();
+    res.json(true);
+  } catch (err) {
+    res.status(400).json({ message: 'Invalid token' });
+  }
+}
+
 /* Deliver Task Data to Frontend */
 router.get('/delete/:id', (req, res) => {
   const id = parseInt(req.params.id);
@@ -174,7 +190,6 @@ router.post('/validate', (req, res) => {
           bcrypt.hash(req.body.password , Math.ceil( Math.random() * 10) , async (err, hash) => {
             UserData && bcrypt.compare(req.body.password , hash , (err,match) =>{
               if(err){
-                console.log(err)
                 res.status(401).json({ error: 'Username or password is incorrect'});
               }
               else{
@@ -192,5 +207,7 @@ router.post('/validate', (req, res) => {
     });
 });
 
-
+router.post('/ValidateToken',(req,res) =>{
+  verifyJWT(req,res)
+})
 module.exports = router;
