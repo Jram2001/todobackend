@@ -16,15 +16,14 @@ router.get('/', function (req, res, next) {
 
 function verifyJWT(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1]; // Extract token from Authorization header
-  console.log(token)
   if (!token) {
     return res.status(401).json({ message: 'Unauthorized: No token provided' });
   }
   try {
     const decoded = jwt.verify( token , process.env.ACCESS_TOKEN ); // Replace with your secret key
+    console.log(decoded)
     req.user = decoded; // Store decoded user info in req.user
-    next();
-    res.json(true);
+    res.send(true)
   } catch (err) {
     res.status(400).json({ message: 'Invalid token' });
   }
