@@ -21,9 +21,8 @@ function verifyJWT(req, res, next) {
   }
   try {
     const decoded = jwt.verify( token , process.env.ACCESS_TOKEN ); // Replace with your secret key
-    console.log(decoded)
     req.user = decoded; // Store decoded user info in req.user
-    res.send(true)
+    res.send(req.body.user == decoded);
   } catch (err) {
     res.status(400).json({ message: 'Invalid token' });
   }
@@ -161,7 +160,7 @@ router.post('/CreateMyUser', (req, res) => {
     .then(async(connection) => {
       console.log('hello',req.body)
       const UserName = req.body.UserName;
-      const hash = await bcrypt.hash(req.body.Password , Math.ceil( Math.random() * 10));
+      const hash = await bcrypt.hash(req.body.Password , Math.random() * 10);
       const CreateQuery = `INSERT INTO userdetails (username,pass) values ('${UserName}','${hash}') `;
       connection.query(CreateQuery, (err, result) => {
         if (err) {
@@ -177,34 +176,35 @@ router.post('/CreateMyUser', (req, res) => {
     })
 });
 
-router.post('/validate', (req, res) => {
-  dbConnection.con()
-    .then((connection) => {
-      const userDataQuery = 'SELECT * FROM userdetails';
-      connection.query(userDataQuery, (err, result) => {
-        if (err) {
-          res.status(500).send('Error executing SQL query');
-        } else {
-          const UserData = result.find((data) => { return req.body.UserName === data.username });
-          bcrypt.hash(req.body.password , Math.ceil( Math.random() * 10) , async (err, hash) => {
-            UserData && bcrypt.compare(req.body.password , hash , (err,match) =>{
-              if(err){
-                res.status(401).json({ error: 'Username or password is incorrect'});
-              }
-              else{
-                const accessToken = jwt.sign(req.body.UserName,process.env.ACCESS_TOKEN )  
-                res.json({ accessToken : accessToken });
-              }
-          })
-          }) 
-          }
-        connection.end(); // Release the database connection
+  router.post('/validate', (req, res) => {
+    dbConnection.con()
+      .then((connection) => {
+        const userDataQuery = 'SELECT * FROM userdetails';
+        connection.query(userDataQuery, (err, result) => {
+          if (err) {
+            res.status(500).send('Error executing SQL query');
+          } else {
+            const UserData = result.find((data) => { return req.body.UserName === data.username });
+            console.log(req.body,'looooooooo')
+            bcrypt.hash(req.body.password , Math.random() * 10 , async (err, hash) => {
+              UserData && bcrypt.compare(UserData.pass ,hash , (err,match) =>{
+                if(err){
+                  res.status(401).json({ error: 'Username or password is incorrect'});
+                }
+                else{
+                  const accessToken = jwt.sign(req.body.UserName,process.env.ACCESS_TOKEN );
+                  res.json({ accessToken : accessToken,user:req.body.UserName });
+                }
+            })
+            }) 
+            }
+          connection.end(); // Release the database connection
+        });
+      })
+      .catch((err) => {
+        res.status(500).send('Error establishing database connection');
       });
-    })
-    .catch((err) => {
-      res.status(500).send('Error establishing database connection');
-    });
-});
+  });
 
 router.post('/ValidateToken',(req,res) =>{
   verifyJWT(req,res)
