@@ -138,7 +138,7 @@ router.post('/CreateUser', (req, res) => {
   dbConnection.con()
     .then((connection) => {
       const UserName = req.body.username;
-      bcrypt.hash(req.body.password , Math.ceil( Math.random() * 10),(err, hash) => {
+      bcrypt.hash(req.body.password , Math.random() * 10 ,(err, hash) => {
         const CreateQuery = `INSERT INTO userdetails (username,pass) values ('${UserName}','${hash}') `;
         connection.query(CreateQuery, (err, result) => {
         if (err) {
@@ -158,15 +158,16 @@ router.post('/CreateUser', (req, res) => {
 router.post('/CreateMyUser', (req, res) => {
   dbConnection.con()
     .then(async(connection) => {
-      console.log('hello',req.body)
       const UserName = req.body.UserName;
-      const hash = await bcrypt.hash(req.body.Password , Math.random() * 10);
+      console.log(req.body.password);
+      const hash = await bcrypt.hash(req.body.password , Math.random() * 10);
       const CreateQuery = `INSERT INTO userdetails (username,pass) values ('${UserName}','${hash}') `;
       connection.query(CreateQuery, (err, result) => {
         if (err) {
           console.log(err, "there is an error in query 1");
         }
         else {
+          console.log(hash,UserName,req.body.password)
           res.send(result)
         }
       })        
@@ -185,15 +186,14 @@ router.post('/CreateMyUser', (req, res) => {
             res.status(500).send('Error executing SQL query');
           } else {
             const UserData = result.find((data) => { return req.body.UserName === data.username });
-            console.log(req.body,'looooooooo')
             bcrypt.hash(req.body.password , Math.random() * 10 , async (err, hash) => {
-              UserData && bcrypt.compare(UserData.pass ,hash , (err,match) =>{
-                if(err){
-                  res.status(401).json({ error: 'Username or password is incorrect'});
-                }
-                else{
+              UserData && bcrypt.compare( req.body.password , UserData.pass , (err,match) =>{
+                if(match || err ){
                   const accessToken = jwt.sign(req.body.UserName,process.env.ACCESS_TOKEN );
                   res.json({ accessToken : accessToken,user:req.body.UserName });
+                }
+                else{
+                  res.status(401).json({ error: 'Username or password is incorrect'});
                 }
             })
             }) 
