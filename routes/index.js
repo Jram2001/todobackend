@@ -52,7 +52,7 @@ router.get('/delete/:id', (req, res) => {
 router.get('/todo', (req, res) => {
   dbConnection.con()
     .then((connection) => {
-      const query = 'SELECT taskdetails.id, taskdetails.TaskName, taskdetails.AsigneeName, taskdetails.Descriptions, taskdetails.Repetable, taskdetails.CreatedOn, taskdetails.deleted, GROUP_CONCAT(tagnames.TagId) AS TagIds, GROUP_CONCAT(tagnames.Tag) AS Tags FROM taskdetails LEFT JOIN tagnames ON taskdetails.id = tagnames.TaskId GROUP BY taskdetails.id, taskdetails.TaskName, taskdetails.AsigneeName, taskdetails.Descriptions, taskdetails.Repetable, taskdetails.CreatedOn, taskdetails.deleted';
+      const query = 'SELECT taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.deleted, GROUP_CONCAT(tagnames.TagId) AS TagIds, GROUP_CONCAT(tagnames.Tag) AS Tags FROM taskdeatails LEFT JOIN tagnames ON taskdeatails.id = tagnames.TaskId GROUP BY taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.deleted';
       const query2 = 'select * from tagnames'
       connection.query(query, (err, result) => {
         if (err) {
