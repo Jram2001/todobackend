@@ -49,10 +49,11 @@ router.get('/delete/:id', (req, res) => {
     });
 });
 
-router.get('/todo', (req, res) => {
+router.post('/todo', (req, res) => {
   dbConnection.con()
     .then((connection) => {
-      const query = 'SELECT taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.deleted, GROUP_CONCAT(tagnames.TagId) AS TagIds, GROUP_CONCAT(tagnames.Tag) AS Tags FROM taskdeatails LEFT JOIN tagnames ON taskdeatails.id = tagnames.TaskId GROUP BY taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.deleted';
+      const query = `SELECT taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.deleted, GROUP_CONCAT(tagnames.TagId) AS TagIds, GROUP_CONCAT(tagnames.Tag) AS Tags FROM taskdeatails LEFT JOIN tagnames ON taskdeatails.id = tagnames.TaskId WHERE taskdeatails.UserID = '${req.body.userId}'
+GROUP BY taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.deleted`;
       const query2 = 'select * from tagnames'
       connection.query(query, (err, result) => {
         if (err) {
@@ -74,11 +75,12 @@ router.post('/create', (req, res) => {
     .then((connection) => {
       const TaskDetail = req.body[0];
       const TagDetails = req.body[1];
-      const CreateQuery = `INSERT INTO taskdetails (id,TaskName,AsigneeName,descriptions,Repetable,CreatedOn,deleted) values (${TaskDetail.id},'${TaskDetail.TaskName}','${TaskDetail.AsigneName}','${TaskDetail.Description}',${TaskDetail.Repetable},'${TaskDetail.CreatedOn}',0) `;
+const CreateQuery = `INSERT INTO taskdeatails (TaskName, AsigneeName, Descriiption, Repetable, CreatedOn, deleted ,UserID) 
+                     VALUES ('${TaskDetail.TaskName}', '${TaskDetail.AsigneName}', '${TaskDetail.Description}', ${TaskDetail.Repetable}, '${TaskDetail.CreatedOn}', 0 , 26 )`;
       connection.query(CreateQuery, (err, result) => {
         const id = TaskDetail.id;
         if (err) {
-          console.log(err, "there is an error in query 1", TaskDetail.CreatedOn);
+          console.log(err, " there is an error in query 1 ");
         }
         else {
           TagDetails.map(data => {
@@ -188,9 +190,10 @@ router.post('/CreateMyUser', (req, res) => {
             const UserData = result.find((data) => { return req.body.UserName === data.username });
             bcrypt.hash(req.body.password , Math.random() * 10 , async (err, hash) => {
               UserData && bcrypt.compare( req.body.password , UserData.pass , (err,match) =>{
+                console.log(UserData)
                 if(match || err ){
                   const accessToken = jwt.sign(req.body.UserName,process.env.ACCESS_TOKEN );
-                  res.json({ accessToken : accessToken,user:req.body.UserName });
+                  res.json({ accessToken : accessToken,user:req.body.UserName,userId:UserData.id });
                 }
                 else{
                   res.status(401).json({ error: 'Username or password is incorrect'});
