@@ -52,9 +52,9 @@ router.get('/delete/:id', (req, res) => {
 router.post('/todo', (req, res) => {
   dbConnection.con()
     .then((connection) => {
-      const query = `SELECT taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.deleted, GROUP_CONCAT(tagnames.TagId) AS TagIds, GROUP_CONCAT(tagnames.Tag) AS Tags FROM taskdeatails LEFT JOIN tagnames ON taskdeatails.id = tagnames.TaskId WHERE taskdeatails.UserID = '${req.body.userId}'
+      const query = `SELECT taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.deleted, GROUP_CONCAT(tagname.TagId) AS TagIds, GROUP_CONCAT(tagname.Tag) AS Tags FROM taskdeatails LEFT JOIN tagname ON taskdeatails.id = tagname.TaskId WHERE taskdeatails.UserID = '${req.body.userId}'
 GROUP BY taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.deleted`;
-      const query2 = 'select * from tagnames'
+      const query2 = 'select * from tagname'
       connection.query(query, (err, result) => {
         if (err) {
           console.log(err, "there is an error in query 1");
@@ -84,7 +84,7 @@ const CreateQuery = `INSERT INTO taskdeatails (TaskName, AsigneeName, Descriipti
         }
         else {
           TagDetails.map(data => {
-            const TagQuerry = `INSERT INTO tagnames (Tag,TaskId) values ('${data.Tag}',${id})`
+            const TagQuerry = `INSERT INTO tagname (Tag,TaskId) values ('${data.Tag}',${id})`
             connection.query(TagQuerry, (err, result1) => {
               if (err) {
                 console.log(err, "there is an error in query 1");
@@ -118,7 +118,7 @@ router.post('/update', (req, res) => {
         }
         else {
           TagDetails.map((data,index) => {
-            const TagQuerry = `UPDATE tagnames SET Tag = '${data.Tag}' WHERE (TagId = ${TagId[index]})`
+            const TagQuerry = `UPDATE tagname SET Tag = '${data.Tag}' WHERE (TagId = ${TagId[index]})`
             connection.query(TagQuerry, (err, result1) => {
               if (err) {
                 console.log(err, "there is an error in query 1");
