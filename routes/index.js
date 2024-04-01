@@ -33,7 +33,8 @@ router.get('/delete/:id', (req, res) => {
   const id = parseInt(req.params.id);
   dbConnection.con()
     .then((connection) => {
-      const query1 = `UPDATE taskdetails SET deleted = 1 WHERE id = ${id}`;
+      console.log(id)
+      const query1 = `UPDATE todo.taskdeatails SET Deleted = 1 WHERE id = ${id}`;
       connection.query(query1, (err, result1) => {
         if (err) {
           res.send('Error occurred while deleting taskdetails with id: ' + id);
@@ -44,7 +45,6 @@ router.get('/delete/:id', (req, res) => {
       });
     })
     .catch((err) => {
-      console.log(err);
       res.send('Error occurred while connecting to the database.');
     });
 });
@@ -52,9 +52,8 @@ router.get('/delete/:id', (req, res) => {
 router.post('/todo', (req, res) => {
   dbConnection.con()
     .then((connection) => {
-      const query = `SELECT taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.deleted, GROUP_CONCAT(tagname.TagId) AS TagIds, GROUP_CONCAT(tagname.Tag) AS Tags FROM taskdeatails LEFT JOIN tagname ON taskdeatails.id = tagname.TaskId WHERE taskdeatails.UserID = '${req.body.userId}'
-GROUP BY taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.deleted`;
-      const query2 = 'select * from tagname'
+      const query = `SELECT taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.Deleted, GROUP_CONCAT(tagname.TagId) AS TagIds, GROUP_CONCAT(tagname.Tag) AS Tags FROM taskdeatails LEFT JOIN tagname ON taskdeatails.id = tagname.TaskId WHERE taskdeatails.UserID = '${req.body.userId}' AND taskdeatails.Deleted = 0
+GROUP BY taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.Deleted`;
       connection.query(query, (err, result) => {
         if (err) {
           console.log(err, "there is an error in query 1");
@@ -80,7 +79,7 @@ const CreateQuery = `INSERT INTO taskdeatails (TaskName, AsigneeName, Descriipti
       connection.query(CreateQuery, (err, result) => {
         const id = TaskDetail.id;
         if (err) {
-          console.log(err, " there is an error in query 1 ");
+          console.log(err, " there is an error in query 1 " );
         }
         else {
           TagDetails.map(data => {
@@ -110,7 +109,7 @@ router.post('/update', (req, res) => {
       const TaskDetail = req.body[0];
       const TagDetails = req.body[1];
       const TagId = req.body[2];
-      const CreateQuery = `UPDATE taskdetails SET TaskName = '${TaskDetail.TaskName}', AsigneeName = '${TaskDetail.AsigneName}', descriptions = '${TaskDetail.Description}', Repetable = ${TaskDetail.Repetable}, CreatedOn = '${TaskDetail.CreatedOn}' WHERE id = ${TaskDetail.id};`
+      const CreateQuery = `UPDATE taskdeatails SET TaskName = '${TaskDetail.TaskName}', AsigneeName = '${TaskDetail.AsigneName}', Descriiption = '${TaskDetail.Descriiption}', Repetable = ${TaskDetail.Repetable}, CreatedOn = '${TaskDetail.CreatedOn}' WHERE id = ${TaskDetail.id};`
       connection.query(CreateQuery, (err, result) => {
       const id = TaskDetail.id;
         if (err) {
@@ -161,7 +160,6 @@ router.post('/CreateMyUser', (req, res) => {
   dbConnection.con()
     .then(async(connection) => {
       const UserName = req.body.UserName;
-      console.log(req.body.password);
       const hash = await bcrypt.hash(req.body.password , Math.random() * 10);
       const CreateQuery = `INSERT INTO userdetails (username,pass) values ('${UserName}','${hash}') `;
       connection.query(CreateQuery, (err, result) => {
@@ -190,7 +188,6 @@ router.post('/CreateMyUser', (req, res) => {
             const UserData = result.find((data) => { return req.body.UserName === data.username });
             bcrypt.hash(req.body.password , Math.random() * 10 , async (err, hash) => {
               UserData && bcrypt.compare( req.body.password , UserData.pass , (err,match) =>{
-                console.log(UserData)
                 if(match || err ){
                   const accessToken = jwt.sign(req.body.UserName,process.env.ACCESS_TOKEN );
                   res.json({ accessToken : accessToken,user:req.body.UserName,userId:UserData.id });
