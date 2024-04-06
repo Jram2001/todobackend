@@ -4,15 +4,20 @@ var router = express.Router();
 const app = express();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken') 
+const bodyParser = require('body-parser');
+const GenerativeModel = require('@google/generative-ai');
+const generativeModel = new GenerativeModel.GoogleGenerativeAI(process.env.GeminiApi);
+
 /* Connect to Database */
 app.use(express.json())
 const dbConnection = require('../dbconnection');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
-
+app.use(bodyParser.json());
 
 function verifyJWT(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1]; // Extract token from Authorization header
@@ -28,12 +33,24 @@ function verifyJWT(req, res, next) {
   }
 }
 
+router.post('/generate-text', async (req, res) => {
+  try {
+    const Text  = req.body.TaskDescription;
+    const Model = generativeModel.getGenerativeModel({model : "gemini-pro" })
+    const Promt = `Your job is to categorize the give text which is from a todo list application in single word for a simple task tracking apllication "${Text}"`
+    const result = await Model.generateContent(Promt);
+    res.json({response : result.response.candidates[0].content.parts[0].text});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+})
+
 /* Deliver Task Data to Frontend */
 router.get('/delete/:id', (req, res) => {
   const id = parseInt(req.params.id);
   dbConnection.con()
     .then((connection) => {
-      console.log(id)
       const query1 = `UPDATE todo.taskdeatails SET Deleted = 1 WHERE id = ${id}`;
       connection.query(query1, (err, result1) => {
         if (err) {
@@ -70,29 +87,30 @@ GROUP BY taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskd
 });
 
 router.post('/create', (req, res) => {
+  console.log('create data')
   dbConnection.con()
     .then((connection) => {
       const TaskDetail = req.body[0];
       const TagDetails = req.body[1];
-const CreateQuery = `INSERT INTO taskdeatails (TaskName, AsigneeName, Descriiption, Repetable, CreatedOn, deleted ,UserID) 
-                     VALUES ('${TaskDetail.TaskName}', '${TaskDetail.AsigneName}', '${TaskDetail.Description}', ${TaskDetail.Repetable}, '${TaskDetail.CreatedOn}', 0 , 26 )`;
+      console.log(req.body,'lollllll')
+      const CreateQuery = `INSERT INTO taskdeatails (TaskName, AsigneeName, Descriiption, Repetable, CreatedOn, deleted ,UserID ,Label) VALUES ('${TaskDetail.TaskName}', '${TaskDetail.AsigneName}', '${TaskDetail.Description}', ${TaskDetail.Repetable}, '${TaskDetail.CreatedOn}', 0 , 26 ,'${TaskDetail.Label}' )`;
       connection.query(CreateQuery, (err, result) => {
         const id = TaskDetail.id;
         if (err) {
           console.log(err, " there is an error in query 1 " );
         }
         else {
-          TagDetails.map(data => {
-            const TagQuerry = `INSERT INTO tagname (Tag,TaskId) values ('${data.Tag}',${id})`
-            connection.query(TagQuerry, (err, result1) => {
-              if (err) {
-                console.log(err, "there is an error in query 1");
-              }
-              else {
-                console.log('result1')
-              }
-            })
-          })
+          // TagDetails.map(data => {
+          //   const TagQuerry = `INSERT INTO tagname (Tag,TaskId) values ('${data.Tag}',${id})`
+          //   connection.query(TagQuerry, (err, result1) => {
+          //     if (err) {
+          //       console.log(err, "there is an error in query 1");
+          //     }
+          //     else {
+          //       console.log('result1')
+          //     }
+          //   })
+          // })
           res.send(result)
         }
       })
@@ -188,13 +206,13 @@ router.post('/CreateMyUser', (req, res) => {
             const UserData = result.find((data) => { return req.body.UserName === data.username });
             bcrypt.hash(req.body.password , Math.random() * 10 , async (err, hash) => {
               UserData && bcrypt.compare( req.body.password , UserData.pass , (err,match) =>{
-                if(match || err ){
-                  const accessToken = jwt.sign(req.body.UserName,process.env.ACCESS_TOKEN );
-                  res.json({ accessToken : accessToken,user:req.body.UserName,userId:UserData.id });
-                }
-                else{
-                  res.status(401).json({ error: 'Username or password is incorrect'});
-                }
+              if(match || err ){
+                const accessToken = jwt.sign(req.body.UserName,process.env.ACCESS_TOKEN );
+                res.json({ accessToken : accessToken,user:req.body.UserName,userId:UserData.id });
+              }
+              else{
+                res.status(401).json({ error: 'Username or password is incorrect'});
+              }
             })
             }) 
             }
