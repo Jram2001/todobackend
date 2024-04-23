@@ -48,6 +48,7 @@ router.post('/generate-text', async (req, res) => {
 
 /* Deliver Task Data to Frontend */
 router.get('/delete/:id', (req, res) => {
+  console.log('hello')
   const id = parseInt(req.params.id);
   dbConnection.con()
     .then((connection) => {
@@ -59,7 +60,7 @@ router.get('/delete/:id', (req, res) => {
           res.send(result1);
         }
         connection.end(); // Ending connection inside callback
-      });
+      }); 
     })
     .catch((err) => {
       res.send('Error occurred while connecting to the database.');
@@ -69,8 +70,9 @@ router.get('/delete/:id', (req, res) => {
 router.post('/todo', (req, res) => {
   dbConnection.con()
     .then((connection) => {
-      const query = `SELECT taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.Deleted, GROUP_CONCAT(tagname.TagId) AS TagIds, GROUP_CONCAT(tagname.Tag) AS Tags FROM taskdeatails LEFT JOIN tagname ON taskdeatails.id = tagname.TaskId WHERE taskdeatails.UserID = '${req.body.userId}' AND taskdeatails.Deleted = 0
-GROUP BY taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.Deleted`;
+        const query = `SELECT * FROM taskdeatails WHERE taskdeatails.UserID = '${req.body.userId}' AND taskdeatails.Deleted = 0`
+//       const query = `SELECT taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.Deleted, GROUP_CONCAT(tagname.TagId) AS TagIds, GROUP_CONCAT(tagname.Tag) AS Tags FROM taskdeatails LEFT JOIN tagname ON taskdeatails.id = tagname.TaskId WHERE taskdeatails.UserID = '${req.body.userId}' AND taskdeatails.Deleted = 0
+// GROUP BY taskdeatails.id, taskdeatails.TaskName, taskdeatails.AsigneeName, taskdeatails.Descriiption, taskdeatails.Repetable, taskdeatails.CreatedOn, taskdeatails.Deleted`;
       connection.query(query, (err, result) => {
         if (err) {
           console.log(err, "there is an error in query 1");
@@ -93,7 +95,7 @@ router.post('/create', (req, res) => {
       const TaskDetail = req.body[0];
       const TagDetails = req.body[1];
       console.log(req.body,'lollllll')
-      const CreateQuery = `INSERT INTO taskdeatails (TaskName, AsigneeName, Descriiption, Repetable, CreatedOn, deleted ,UserID ,Label) VALUES ('${TaskDetail.TaskName}', '${TaskDetail.AsigneName}', '${TaskDetail.Description}', ${TaskDetail.Repetable}, '${TaskDetail.CreatedOn}', 0 , 26 ,'${TaskDetail.Label}' )`;
+      const CreateQuery = `INSERT INTO taskdeatails (TaskName, AsigneeName, Descriiption, Repetable, CreatedOn, deleted ,UserID ,Label) VALUES ('${TaskDetail.TaskName}', '${TaskDetail.AsigneName}', '${TaskDetail.Descriiption}', ${TaskDetail.Repetable}, '${TaskDetail.CreatedOn}', 0 , 26 ,'${TaskDetail.Label}' )`;
       connection.query(CreateQuery, (err, result) => {
         const id = TaskDetail.id;
         if (err) {
@@ -134,18 +136,18 @@ router.post('/update', (req, res) => {
           console.log(err, "there is an error in query 1", TaskDetail.CreatedOn);
         }
         else {
-          TagDetails.map((data,index) => {
-            const TagQuerry = `UPDATE tagname SET Tag = '${data.Tag}' WHERE (TagId = ${TagId[index]})`
-            connection.query(TagQuerry, (err, result1) => {
-              if (err) {
-                console.log(err, "there is an error in query 1");
-              }
-              else {
-                console.log('result1')
-              }
-            })
-          })
-          res.send(result)
+          // TagDetails.map((data,index) => {
+          //   const TagQuerry = `UPDATE tagname SET Tag = '${data.Tag}' WHERE (TagId = ${TagId[index]})`
+          //   connection.query(TagQuerry, (err, result1) => {
+          //     if (err) {
+          //       console.log(err, "there is an error in query 1");
+          //     }
+          //     else {
+          //       console.log('result1')
+          //     }
+          //   })
+          // })
+          // res.send(result)
         }
       })
 
