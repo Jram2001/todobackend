@@ -206,9 +206,11 @@ router.post('/CreateMyUser', (req, res) => {
             res.status(500).send('Error executing SQL query');
           } else {
             const UserData = result.find((data) => { return req.body.UserName === data.username });
+            if(UserData){
             bcrypt.hash(req.body.password , Math.random() * 10 , async (err, hash) => {
-              UserData && bcrypt.compare( req.body.password , UserData.pass , (err,match) =>{
-              if(match || err ){
+              UserData && bcrypt.compare( req.body.password , UserData.pass , (error,match) =>{
+              console.log(error,match,'lol')
+              if(match){
                 const accessToken = jwt.sign(req.body.UserName,process.env.ACCESS_TOKEN );
                 res.json({ accessToken : accessToken,user:req.body.UserName,userId:UserData.id });
               }
@@ -217,6 +219,10 @@ router.post('/CreateMyUser', (req, res) => {
               }
             })
             }) 
+          }
+          else{
+                res.status(401).json({ error: 'Username or password is incorrect'});
+          }
             }
           connection.end(); // Release the database connection
         });
